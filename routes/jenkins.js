@@ -19,10 +19,14 @@ router.use(function timeLog (req, res, next) {
 router.get('/',function(req,res){
     console.log("Getting All Jenkins Servers");
     db.getConnection().collection('jenkins').find().toArray(function(err,results){
-        if (err) throw err;
-        console.log(results);
+        if (err){
+            console.log("Error in getting Jenkins Servers List " + err.message);
+            res.status(500).send(err);
+        }else{
+            console.log("Result" + results);
+            res.json({data : results}).end();
+        }
     })
-    res.render('index', { title: 'Jenkins' });
 })
 
 router.post('/', urlencodedParser, function(req,res){

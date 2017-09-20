@@ -8,10 +8,8 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var jenkins = require('./routes/jenkins');
+var steps = require('./routes/steps');
 var app = express();
-
-var db = require(__dirname + '\\utils\\mongodb_connection.js');
-db.getConnection();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -36,6 +34,7 @@ app.all('/*',function(req, res, next) {
 app.use('/', index);
 app.use('/users', users);
 app.use('/jenkins', jenkins);
+app.use('/pipeline/steps', steps);
 
 
 

@@ -17,8 +17,8 @@ router.use(function timeLog (req, res, next) {
 })
 
 router.get('/',function(req,res){
-    var jenkinsName = req.body.jenkinsName;
-    var pipeline = req.body.pipeline;
+    var jenkinsName = req.query.jenkinsName;
+    var pipeline = req.query.pipeline;
     db.getConnection(jenkinsName, function(err, returnValue){
         var conn = returnValue;
         conn.collection(pipeline).find().toArray(function(err,results){

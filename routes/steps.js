@@ -1,13 +1,24 @@
 var express = require('express')
 var bodyParser = require('body-parser')
 var router = express.Router()
-var db = require(__dirname + '\\..\\utils\\mongodb_connection.js')
+var mongoose = require("mongoose")
+var _mongoose = require('.\\..\\utils\\mongodb_connection.js')
 
-// create application/json parser
-var jsonParser = bodyParser.json()
+//Getting referene of query object by creating model in mongoose
+var Schema = mongoose.Schema;
+var stepsSchema = new Schema({
+    "jobID" : String,
+    "steps" : [{
+        stepId: Number,
+        stepJenkinsId: String,
+        stepName: String,
+        stepDurationInMillis: Number,
+        stepStatus: String,
+        stepState: String,
+        stepNextId: [String]
+    }]
 
-// create application/x-www-form-urlencoded parser
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
+});
 
 
 // middleware that is specific to this router
@@ -17,40 +28,27 @@ router.use(function timeLog (req, res, next) {
 })
 
 router.get('/',function(req,res){
-    var jenkinsName = req.query.jenkinsName;
-    var pipeline = req.query.pipeline;
-    db.getConnection(jenkinsName, function(err, returnValue){
-        var conn = returnValue;
-        conn.collection(pipeline).find().toArray(function(err,results){
-            if (err){
-                console.log("Error in getting Steps List " + err.message);
-                res.status(500).send(err);
-            }else{
-                console.log("Result" + results);
-                res.json({data : results}).end();
-            }
-        })
+    const DB = req.query.jenkinsName;
+    const COLLECTION = req.query.pipeline; 
+    var conn = _mongoose.getConnection(DB);
+    var StepsModel = conn.model(COLLECTION, stepsSchema, COLLECTION)
+    StepsModel.find({},function(err,data){
+        res.json({"data": data})
     })
 })
 
-router.post('/', urlencodedParser, function(req,res){
-    var jenkinsName = req.body.jenkinsName;
-    var pipeline = req.body.pipeline;
-    console.log("Posting Pipeline Steps of Pipeline " + pipeline + "and Jenkins " + jenkinsName);
-    const doc = {jobId: req.body.jobId, steps: req.body.steps};
-    db.getConnection(jenkinsName, function(err, returnValue){
-        var conn = returnValue;
-        conn.collection(pipeline).insert(doc,function(err,results){
-            if (err){
-                console.log("Error in inserting all documents" + err.message);
-                res.status(500).send(err);
-    
-            }else{
-                console.log("Successfully inserted");
-                res.status(200).end();
-            }
-        })
+router.post('/', function(req,res){
+
+    const DB = req.body.jenkinsName;
+    const COLLECTION = req.body.pipeline; 
+    var conn = _mongoose.getConnection(DB);
+    var StepsModel = conn.model(COLLECTION, stepsSchema, COLLECTION)
+    StepsModel.insertMany(req.body.doc,function(err,docs){
+        console.log(docs);
+        res.sendStatus(200).end();
     })
 })
+
+
 
 module.exports = router
